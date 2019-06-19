@@ -1,5 +1,5 @@
 use lmdb::{Environment, EnvironmentFlags, Transaction, Database};
-use serde::{Deserialize, Serialize, de::{Deserializer, self}};
+use serde::{Deserialize, Serialize, de::{Deserializer, self}, Serializer};
 use std::{marker::PhantomData, fmt::{Debug, Formatter, Display, self}, ffi::CString, path::Path, collections::HashMap, str::FromStr, iter::IntoIterator};
 #[macro_use] extern crate failure;
 use failure::Error;
@@ -48,6 +48,21 @@ trait FromAttachmentData {
 
 trait IntoAttachmentData {
     fn into_attachment_data(self) -> u32;
+}
+
+impl FromAttachmentData for u32 {
+    fn from_attachment_data_mut(data: &mut u32) -> &mut u32 {
+        data
+    }
+    fn from_attachment_data(data: &u32) -> &u32 {
+        data
+    }
+}
+
+impl IntoAttachmentData for u32 {
+    fn into_attachment_data(self) -> u32 {
+        self
+    }
 }
 
 impl FromAttachmentData for [u8; 4] {
@@ -126,16 +141,16 @@ impl AttachmentType for RGBA {
     }
 }
 
-/*struct Normal;
+struct Normal;
 
 impl AttachmentType for Normal {
     fn name(&self) -> String {
         "Normal".to_owned()
     }
     fn averager<T>(attachments: T) -> Attachment<Self> where T: IntoIterator<Item = Attachment<Self>> {
-
+        Attachment::new(0)
     }
-}*/
+}
 
 trait AttachmentType {
     fn averager<T>(attachments: T) -> Attachment<Self> where T: IntoIterator<Item = Attachment<Self>>, Self: Sized;
@@ -164,6 +179,7 @@ impl FromStr for Box<dyn AttachmentType> {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "RGBA" => Ok(Box::new(RGBA)),
+            "Normal" => Ok(Box::new(Normal)),
             _ => Err(AtomError::InvalidAttachmentName {
                 name: s.to_owned()
             })?
@@ -196,6 +212,21 @@ impl<'de> Deserialize<'de> for Header {
                 branch_mask: data.root_node.1,
             }
         })
+    }
+}
+
+impl Serialize for Header {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        HeaderData::serialize(&HeaderData {
+            building: self.building,
+            compressed: self.compressed,
+            metadata: self.metadata.clone(),
+            root_node: (self.root_node.octant_mask, self.root_node.branch_mask),
+            schema: self.schema.iter().map(|ty| ty.name()).collect()
+        }, serializer)
     }
 }
 
@@ -237,6 +268,6 @@ struct Node {
 
 fn main() {
     let db = LMDB::new(Path::new("./bridge.atom2")).unwrap();
-    let header = db.header();
-    println!("{:?}", header);
+    let header = db.header().unwrap();
+    println!("{}", serde_json::to_string(&header).unwrap());
 }
