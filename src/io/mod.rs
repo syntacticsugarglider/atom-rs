@@ -1,4 +1,4 @@
-use crate::tree::Header;
+use crate::tree::{Header, Block};
 
 use failure::Error;
 
@@ -7,4 +7,5 @@ pub use self::lmdb::LMDB;
 
 pub trait IO {
     fn header(&self) -> Result<Header, Error>;
+    //fn block(&self) -> Result<Block, Error>;
 }
