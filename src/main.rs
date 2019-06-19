@@ -33,10 +33,10 @@ struct Attachment<T: AttachmentType> {
 }
 
 impl<T: AttachmentType> Attachment<T> {
-    fn new(data: u32) -> Attachment<T> {
+    fn new<U: IntoAttachmentData>(data: U) -> Attachment<T> {
         Attachment {
             ty: PhantomData,
-            data
+            data: data.into_attachment_data()
         }
     }
 }
@@ -44,6 +44,10 @@ impl<T: AttachmentType> Attachment<T> {
 trait FromAttachmentData {
     fn from_attachment_data_mut(data: &mut u32) -> &mut Self;
     fn from_attachment_data(data: &u32) -> &Self;
+}
+
+trait IntoAttachmentData {
+    fn into_attachment_data(self) -> u32;
 }
 
 impl FromAttachmentData for [u8; 4] {
@@ -55,6 +59,12 @@ impl FromAttachmentData for [u8; 4] {
     }
 }
 
+impl IntoAttachmentData for [u8; 4] {
+    fn into_attachment_data(self) -> u32 {
+        unsafe { std::mem::transmute(self) }
+    }
+}
+
 impl FromAttachmentData for [u16; 2] {
     fn from_attachment_data_mut(data: &mut u32) -> &mut [u16; 2] {
         unsafe { std::mem::transmute(data) }
@@ -63,12 +73,25 @@ impl FromAttachmentData for [u16; 2] {
         unsafe { std::mem::transmute(data) }
     }
 }
+
+impl IntoAttachmentData for [u16; 2] {
+    fn into_attachment_data(self) -> u32 {
+        unsafe { std::mem::transmute(self) }
+    }
+}
+
 impl FromAttachmentData for f32 {
     fn from_attachment_data_mut(data: &mut u32) -> &mut f32 {
         unsafe { std::mem::transmute(data) }
     }
     fn from_attachment_data(data: &u32) -> &f32 {
         unsafe { std::mem::transmute(data) }
+    }
+}
+
+impl IntoAttachmentData for f32 {
+    fn into_attachment_data(self) -> u32 {
+        unsafe { std::mem::transmute(self) }
     }
 }
 
@@ -90,8 +113,8 @@ impl AttachmentType for RGBA {
     fn averager<T>(attachments: T) -> Attachment<Self> where T: IntoIterator<Item = Attachment<Self>> {
         let summed = attachments.into_iter().fold((0usize, [0u16; 4]), |current, attachment| {
             let mut current = current;
-            current.1.iter_mut().enumerate().for_each(|(index, item)| {
-                *item += attachment.get::<[u8; 4]>()[index] as u16
+            current.1.iter_mut().zip(attachment.get::<[u8; 4]>().iter()).for_each(|(item, attachment_item)| {
+                *item += *attachment_item as u16
             });
             (current.0 + 1, current.1)
         });
@@ -99,15 +122,34 @@ impl AttachmentType for RGBA {
         summed.1.iter().zip(data.iter_mut()).for_each(|(d, s)| {
             *s = (d / summed.0 as u16) as u8;
         });
-        Attachment::new(unsafe {
-            std::mem::transmute(data)
-        })
+        Attachment::new(data)
     }
 }
+
+/*struct Normal;
+
+impl AttachmentType for Normal {
+    fn name(&self) -> String {
+        "Normal".to_owned()
+    }
+    fn averager<T>(attachments: T) -> Attachment<Self> where T: IntoIterator<Item = Attachment<Self>> {
+
+    }
+}*/
 
 trait AttachmentType {
     fn averager<T>(attachments: T) -> Attachment<Self> where T: IntoIterator<Item = Attachment<Self>>, Self: Sized;
     fn name(&self) -> String;
+}
+
+trait Averageable<T: AttachmentType> {
+    fn average(self) -> Attachment<T>;
+}
+
+impl<T, U: AttachmentType> Averageable<U> for T where T: IntoIterator<Item = Attachment<U>> + Sized {
+    fn average(self) -> Attachment<U> {
+        U::averager(self)
+    }
 }
 
 impl Debug for AttachmentType {
