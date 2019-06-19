@@ -48,10 +48,10 @@ impl IntoAttachmentData for u32 {
 
 impl FromAttachmentData for [u8; 4] {
     fn from_attachment_data_mut(data: &mut u32) -> &mut [u8; 4] {
-        unsafe { std::mem::transmute(data) }
+        unsafe { &mut *(data as *mut u32 as *mut [u8; 4]) }
     }
     fn from_attachment_data(data: &u32) -> &[u8; 4] {
-        unsafe { std::mem::transmute(data) }
+        unsafe { &*(data as *const u32 as *const [u8; 4]) }
     }
 }
 
@@ -63,10 +63,10 @@ impl IntoAttachmentData for [u8; 4] {
 
 impl FromAttachmentData for [u16; 2] {
     fn from_attachment_data_mut(data: &mut u32) -> &mut [u16; 2] {
-        unsafe { std::mem::transmute(data) }
+        unsafe { &mut *(data as *mut u32 as *mut [u16; 2]) }
     }
     fn from_attachment_data(data: &u32) -> &[u16; 2] {
-        unsafe { std::mem::transmute(data) }
+        unsafe { &*(data as *const u32 as *const [u16; 2]) }
     }
 }
 
@@ -78,10 +78,10 @@ impl IntoAttachmentData for [u16; 2] {
 
 impl FromAttachmentData for f32 {
     fn from_attachment_data_mut(data: &mut u32) -> &mut f32 {
-        unsafe { std::mem::transmute(data) }
+        unsafe { &mut *(data as *mut u32 as *mut f32) }
     }
     fn from_attachment_data(data: &u32) -> &f32 {
-        unsafe { std::mem::transmute(data) }
+        unsafe { &*(data as *const u32 as *const f32) }
     }
 }
 

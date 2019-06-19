@@ -18,7 +18,7 @@ impl Type for RGBA {
                     .1
                     .iter_mut()
                     .zip(attachment.get::<[u8; 4]>().iter())
-                    .for_each(|(item, attachment_item)| *item += *attachment_item as u16);
+                    .for_each(|(item, attachment_item)| *item += u16::from(*attachment_item));
                 (current.0 + 1, current.1)
             });
         let mut data = [0u8; 4];

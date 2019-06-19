@@ -19,7 +19,7 @@ pub trait Type {
     fn name(&self) -> String;
 }
 
-impl Debug for Type {
+impl Debug for dyn Type {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "AttachmentType ( {} )", self.name())
     }

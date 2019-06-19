@@ -46,7 +46,7 @@ impl<'de> Deserialize<'de> for Header {
             metadata: data.metadata,
             building: data.building,
             compressed: data.compressed,
-            schema: schema.map_err(|err| de::Error::custom(err))?,
+            schema: schema.map_err(de::Error::custom)?,
             root_node: Node {
                 octant_mask: data.root_node.0,
                 branch_mask: data.root_node.1,
