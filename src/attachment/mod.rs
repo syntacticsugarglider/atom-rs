@@ -17,7 +17,7 @@ impl<T: Type> Attachment<T> {
     fn new<U: IntoAttachmentData>(data: U) -> Attachment<T> {
         Attachment {
             ty: PhantomData,
-            data: data.into_attachment_data()
+            data: data.into_attachment_data(),
         }
     }
 }
@@ -104,7 +104,10 @@ pub trait Averageable<T: Type> {
     fn average(self) -> Attachment<T>;
 }
 
-impl<T, U: Type> Averageable<U> for T where T: IntoIterator<Item = Attachment<U>> + Sized {
+impl<T, U: Type> Averageable<U> for T
+where
+    T: IntoIterator<Item = Attachment<U>> + Sized,
+{
     fn average(self) -> Attachment<U> {
         U::averager(self)
     }

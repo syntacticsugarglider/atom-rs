@@ -1,5 +1,5 @@
+use atom::io::{IO, LMDB};
 use std::path::Path;
-use atom::io::{LMDB, IO};
 
 fn main() {
     let db = LMDB::new(Path::new("./bridge.atom2")).unwrap();

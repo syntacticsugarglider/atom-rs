@@ -1,4 +1,4 @@
-use crate::tree::{Header, Block};
+use crate::tree::{Block, Header};
 
 use failure::Error;
 

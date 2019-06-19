@@ -1,9 +1,21 @@
+use crate::{
+    attachment::{
+        types::{Normal, RGBA},
+        Attachment,
+    },
+    error,
+};
 use failure::Error;
-use std::{fmt::{Debug, Formatter, self}, str::FromStr};
-use crate::{error, attachment::{types::{RGBA, Normal}, Attachment}};
+use std::{
+    fmt::{self, Debug, Formatter},
+    str::FromStr,
+};
 
 pub trait Type {
-    fn averager<T>(attachments: T) -> Attachment<Self> where T: IntoIterator<Item = Attachment<Self>>, Self: Sized;
+    fn averager<T>(attachments: T) -> Attachment<Self>
+    where
+        T: IntoIterator<Item = Attachment<Self>>,
+        Self: Sized;
     fn name(&self) -> String;
 }
 
@@ -20,9 +32,7 @@ impl FromStr for Box<dyn Type> {
         match s {
             "RGBA" => Ok(Box::new(RGBA)),
             "Normal" => Ok(Box::new(Normal)),
-            _ => Err(error::Error::InvalidAttachmentName {
-                name: s.to_owned()
-            })?
+            _ => Err(error::Error::InvalidAttachmentName { name: s.to_owned() })?,
         }
     }
 }
