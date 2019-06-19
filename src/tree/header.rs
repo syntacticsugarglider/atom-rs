@@ -47,10 +47,10 @@ impl<'de> Deserialize<'de> for Header {
             building: data.building,
             compressed: data.compressed,
             schema: schema.map_err(de::Error::custom)?,
-            root_node: Node {
-                octant_mask: data.root_node.0,
-                branch_mask: data.root_node.1,
-            },
+            root_node: Node::root(
+                data.root_node.0.into(),
+                data.root_node.1.into(),
+            )
         })
     }
 }
@@ -65,7 +65,7 @@ impl Serialize for Header {
                 building: self.building,
                 compressed: self.compressed,
                 metadata: self.metadata.clone(),
-                root_node: (self.root_node.octant_mask, self.root_node.branch_mask),
+                root_node: (self.root_node.octant_mask.into(), self.root_node.branch_mask.into()),
                 schema: self.schema.iter().map(|ty| ty.name()).collect(),
             },
             serializer,

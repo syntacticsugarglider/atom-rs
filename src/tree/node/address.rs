@@ -7,12 +7,6 @@ use std::{
     str::FromStr,
 };
 
-#[derive(Debug)]
-pub struct Node {
-    pub(crate) octant_mask: u8,
-    pub(crate) branch_mask: u8,
-}
-
 #[derive(Debug, Clone, Copy, Hash, PartialEq)]
 #[repr(u8)]
 pub enum Octant {

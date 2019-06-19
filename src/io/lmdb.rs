@@ -1,7 +1,10 @@
-use crate::{io::IO, tree::Header};
+use crate::{
+    io::IO,
+    tree::{node::Address, Header, Block},
+};
 use failure::Error;
-use lmdb::{Database, Environment, EnvironmentFlags, Transaction};
-use std::{ffi::CString, path::Path};
+use lmdb::{Cursor, Database, Environment, EnvironmentFlags, Transaction};
+use std::{convert::TryInto, ffi::CString, path::Path};
 
 pub struct LMDB {
     environment: Environment,
@@ -19,6 +22,13 @@ impl LMDB {
             database,
         };
         Ok(db)
+    }
+    pub fn block(&self, address: &Address) -> Result<Block, Error> {
+        let transaction = self.environment.begin_ro_txn().unwrap();
+        let data = 
+            transaction
+                .get(self.database, &address.to_string())?;
+        Ok(Block {})
     }
 }
 
