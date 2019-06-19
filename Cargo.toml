@@ -1,5 +1,5 @@
 [package]
-name = "atom2-rs"
+name = "atom"
 version = "0.1.0"
 authors = ["Izzy Swart"]
 edition = "2018"
